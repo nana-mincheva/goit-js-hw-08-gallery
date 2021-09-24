@@ -63,3 +63,88 @@ const galleryItems = [
     description: 'Lighthouse Coast Sea',
   },
 ];
+
+const galleryList = document.querySelector(".js-gallery");
+const modal = document.querySelector(".js-lightbox");
+const modalImg = document.querySelector(".lightbox__image");
+const modalRef = document.querySelector(".lightbox__image");
+const overlay = document.querySelector(".lightbox__overlay")
+const closeBtn = document.querySelector(".lightbox__button");
+const rightBtn = document.querySelector(".scroll-right");
+const leftBtn = document.querySelector(".scroll-left");
+
+galleryList.addEventListener('click', modalOpen);
+galleryList.insertAdjacentHTML("beforeend", galleryCardMarkup(galleryItems));
+   
+function galleryCardMarkup(img) {
+    return img.map(({ preview, original, description }) => {
+        return `<li class="gallery__item">
+                    <a class="gallery__link"
+                     href=${original}>
+                         <img class="gallery__image"
+                          src=${preview}
+                          data-source=${original}
+                          alt=${description} />
+                    </a>
+                    </li>`
+    }).join("");
+};
+
+function modalOpen(event) {
+    event.preventDefault();
+
+    if (event.target.nodeName !== "IMG") {
+        return
+    };
+    modal.classList.add("is-open");
+    modalImg.src = event.target.dataset.source;
+    modalImg.alt = event.target.alt;
+    overlay.addEventListener("click", modalCloseByOverlayClick);
+    document.addEventListener("keydown", modalCloseByEsc);
+    closeBtn.addEventListener('click', modalClose);
+    window.addEventListener("keydown", modalImgScrolling); 
+};
+
+function modalClose(event) {
+    modal.classList.remove("is-open");
+    overlay.removeEventListener("click", modalCloseByOverlayClick);
+    document.removeEventListener("keydown", modalCloseByEsc);
+    closeBtn.removeEventListener('click', modalClose);
+    window.removeEventListener("keydown", modalImgScrolling);
+};
+
+function modalCloseByEsc(event) {
+    if (event.code === "Escape") {
+        modalClose(event)        
+    }
+};
+
+function modalCloseByOverlayClick(event) {
+    if (event.currentTarget === event.target) {
+        modalClose(event)      
+    }
+};
+
+
+function modalImgScrolling(event) {
+
+    let imgIndex = galleryItems.findIndex(img => img.original === modalImg.src);
+
+    if (event.code === 'ArrowLeft' || event.code === 'ArrowDown' || leftBtn === event.target) {
+        if (imgIndex === 0) {
+            imgIndex += galleryItems.length;
+        }
+        imgIndex -= 1;
+    };
+
+    if (event.code === 'ArrowRight' || event.code === 'ArrowUp' || rightBtn === event.target || modalRef === event.target) {
+        if (imgIndex === galleryItems.length - 1) {
+            imgIndex -= galleryItems.length;
+        }
+        imgIndex += 1;
+    };
+
+    modalImg.src = galleryItems[imgIndex].original;
+    modalImg.alt = galleryItems[imgIndex].description;
+
+};
